@@ -11,3 +11,10 @@ http://localhost:7788/api/yaml
 
 write: POST
 http://localhost:7788/api/yaml
+
+
+推送tag后会自动构建
+```sh
+git tag v0.0.1
+git push --tags
+```
