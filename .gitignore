@@ -1,0 +1,7 @@
+# Go
+*.exe
+*.dll
+*.so
+*.dylib
+build/
+*.log
