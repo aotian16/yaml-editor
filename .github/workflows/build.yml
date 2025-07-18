@@ -5,14 +5,17 @@ on:
     tags:
       - 'v*'  # 触发于标签如 v1.0
 
+permissions:
+  contents: write  # 显式授予写权限，用于创建Release和上传资产
+
 jobs:
-  build:
+  build-and-release:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-go@v3
+    - uses: actions/checkout@v4  # 更新到v4
+    - uses: actions/setup-go@v5  # 更新到v5
       with:
-        go-version: '1.24'  # 使用您的Go版本
+        go-version: '1.21'  # 您的Go版本
     - name: Build Windows amd64
       run: GOOS=windows GOARCH=amd64 go build -o yaml-editor-windows-amd64.exe
     - name: Build macOS amd64
@@ -21,52 +24,14 @@ jobs:
       run: GOOS=darwin GOARCH=arm64 go build -o yaml-editor-darwin-arm64
     - name: Build Linux amd64
       run: GOOS=linux GOARCH=amd64 go build -o yaml-editor-linux-amd64
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Release
+      uses: softprops/action-gh-release@v2  # 使用现代action，简化Release和上传
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
         body: |
           Automated build for ${{ github.ref }}.
           Run the executable and access http://localhost:8080 for WebUI.
-        draft: false
-        prerelease: false
-    - name: Upload Windows Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: yaml-editor-windows-amd64.exe
-        asset_name: yaml-editor-windows-amd64.exe
-        asset_content_type: application/octet-stream
-    - name: Upload macOS amd64 Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: yaml-editor-darwin-amd64
-        asset_name: yaml-editor-darwin-amd64
-        asset_content_type: application/octet-stream
-    - name: Upload macOS arm64 Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: yaml-editor-darwin-arm64
-        asset_name: yaml-editor-darwin-arm64
-        asset_content_type: application/octet-stream
-    - name: Upload Linux amd64 Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: yaml-editor-linux-amd64
-        asset_name: yaml-editor-linux-amd64
-        asset_content_type: application/octet-stream
+        files: |
+          yaml-editor-windows-amd64.exe
+          yaml-editor-darwin-amd64
+          yaml-editor-darwin-arm64
+          yaml-editor-linux-amd64
